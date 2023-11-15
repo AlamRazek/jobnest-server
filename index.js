@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const cookieParser = require("cookie-parser");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -14,6 +15,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xqlvbzz.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -31,6 +33,7 @@ async function run() {
     await client.connect();
 
     const allPostedJobs = client.db("jobNest").collection("jobPost");
+    const allAppliedJobs = client.db("jobNest").collection("appliedJobs");
 
     // auth related api
     app.post("/jwt", async (req, res) => {
@@ -44,8 +47,57 @@ async function run() {
         .cookie("token", token, {
           httpOnly: true,
           secure: false,
+          // sameSite: "none",
         })
-        .send(token);
+        .send({ success: true });
+    });
+
+    //get job to show in ui
+    app.get("/jobs", async (req, res) => {
+      const cursor = allPostedJobs.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // show data accordingly user name
+    app.get("/jobs/:name", async (req, res) => {
+      const { name } = req.params;
+      const cursor = allPostedJobs.find({ name });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/details/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await allPostedJobs.findOne(query);
+      res.send(result);
+    });
+
+    // post a job
+    app.post("/job", async (req, res) => {
+      const newJob = req.body;
+      console.log(newJob);
+      const result = await allPostedJobs.insertOne(newJob);
+      res.send(result);
+    });
+
+    // post applied job and add in db
+    app.post("/appliedJobs", async (req, res) => {
+      const appliedJob = req.body;
+      console.log(appliedJob);
+      const result = await allAppliedJobs.insertOne(appliedJob);
+      res.send(result);
+    });
+
+    // update applied job applicant number
+    app.patch("/appliedJobs/:id", async (req, res) => {
+      const postId = req.params.id;
+      const filter = { _id: new ObjectId(postId) };
+
+      const update = { $inc: { applicantNumber: 1 } };
+      const result = await allPostedJobs.updateOne(filter, update);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
