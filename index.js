@@ -112,6 +112,14 @@ async function run() {
       res.send(result);
     });
 
+    // get all applied jobs
+    app.get("/appliedJobs/:name", async (req, res) => {
+      const { name: applierName } = req.params;
+      const cursor = allAppliedJobs.find({ applierName });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.delete("/delete/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -120,7 +128,7 @@ async function run() {
     });
 
     // update applied job applicant number
-    app.patch("/appliedJobs/:id", async (req, res) => {
+    app.patch("/updateAppliedJobs/:id", async (req, res) => {
       const postId = req.params.id;
       const filter = { _id: new ObjectId(postId) };
 
