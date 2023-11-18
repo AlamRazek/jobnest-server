@@ -11,9 +11,9 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173"
+      // "http://localhost:5173",
       "https://jobnest-738ec.web.app",
-      "https://jobnest-738ec.firebaseapp.com",
+      "https://jobnest-738ec.firebaseapp.com/",
     ],
     credentials: true,
   })
