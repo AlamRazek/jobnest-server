@@ -11,13 +11,20 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
+      //"http://localhost:5173",
       "https://jobnest-738ec.web.app",
-      "https://jobnest-738ec.firebaseapp.com/",
+      "https://jobnest-738ec.firebaseapp.com",
     ],
     credentials: true,
   })
 );
+
+/* const corsConfig = {
+  origin: "*",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+};
+app.use(cors(corsConfig)) */
 app.use(express.json());
 app.use(cookieParser());
 
@@ -34,7 +41,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const allPostedJobs = client.db("jobNest").collection("jobPost");
     const allAppliedJobs = client.db("jobNest").collection("appliedJobs");
@@ -60,6 +67,7 @@ async function run() {
     app.get("/jobs", async (req, res) => {
       const cursor = allPostedJobs.find();
       const result = await cursor.toArray();
+      console.log(result);
       res.send(result);
     });
 
@@ -142,7 +150,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
@@ -154,7 +162,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("users management server is running");
+  res.send("users management server is running ${}");
 });
 
 app.listen(port, () => {
